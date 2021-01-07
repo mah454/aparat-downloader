@@ -1,0 +1,3 @@
+#!/bin/bash
+
+java -jar /opt/aparat-dl/aparat-dl.jar  $1
