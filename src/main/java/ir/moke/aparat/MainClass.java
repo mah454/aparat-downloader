@@ -20,6 +20,13 @@ public class MainClass {
     private static String SELECTED_QUALITY = "BEST";
 
     public static void main(String[] args) throws Exception {
+        if (args.length == 0) {
+            System.out.println("Please add aparat playlist link as first parameter");
+            System.out.println("Usage: aparat-dl [APARAT_PLAYLIST_LINK] [QUALITY-ID : 144|240|360|480|720|BEST]");
+            System.out.println("Example : aparat-dl https://www.aparat.com/playlist/108222");
+            System.out.println("Download with custom quality: aparat-dl [APARAT_PLAYLIST_LINK] 720");
+            System.exit(1);
+        }
         String urlStr = args[0];
         URL url = new URL(urlStr);
         String PLAY_LIST_PATH = url.getPath();
