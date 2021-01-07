@@ -7,6 +7,7 @@ if [ ! -d $INSTALL_PATH ] ; then
 fi
 
 install -m 644 target/aparat-dl.jar /opt/aparat-dl/aparat-dl.jar
-install -m 755 aparat-dl /opt/aparat-dl/aparat-dl 
+install -m 755 aparat-dl /opt/aparat-dl/aparat-dl
+update-alternatives --install /usr/local/bin/aparat-dl aparat-dl /opt/aparat-dl/aparat-dl 100
 
 
