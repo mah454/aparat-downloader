@@ -38,7 +38,7 @@ public class MainClass {
         System.out.println("Download playlist url : " + APARAT_URL + PLAY_LIST_PATH);
         extractPlaylistLinks(APARAT_URL + PLAY_LIST_PATH);
 
-        int i = 0;
+        int i = 1;
         for (Map.Entry<String, String> linkMap : LINKS.entrySet()) {
             String title = linkMap.getKey();
             String href = linkMap.getValue();
@@ -51,7 +51,8 @@ public class MainClass {
                 url = QUALITIES.get(QUALITY.getQuality(SELECTED_QUALITY));
             }
 
-            String finalFileName = i + "_" + title + ".mp4";
+            String id = String.format("%02d", i);
+            String finalFileName = id + "_" + title + ".mp4";
             File targetFile = new File(CURRENT_WORKING_DIR + "/" + finalFileName);
             System.out.println(finalFileName);
             Downloader.instance.download(url, targetFile);
@@ -60,7 +61,9 @@ public class MainClass {
             QUALITIES.clear();
             i++;
         }
-        System.out.println("\n");
+        System.out.println("--------------------------------");
+        System.out.println(i + " File Downloaded");
+        System.out.println("Download Playlist Completed");
     }
 
 
