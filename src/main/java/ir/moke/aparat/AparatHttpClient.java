@@ -48,7 +48,7 @@ public class AparatHttpClient {
         JsonObject jsonObject = callApi(VIDEO_API_URI, videoHash);
         JsonObject data = jsonObject.get("data").getAsJsonObject();
         JsonObject attributes = data.get("attributes").getAsJsonObject();
-        String title = attributes.get("title").getAsString();
+        String title = attributes.get("title").getAsString().replaceAll("/","_");
         JsonArray file_link_all = attributes.get("file_link_all").getAsJsonArray();
         List<Link> linkList = new ArrayList<>();
         for (JsonElement jsonElement : file_link_all) {
