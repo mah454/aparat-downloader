@@ -44,9 +44,10 @@ public class Downloader implements ProgressCallBack {
     private void downloadOperation(File outputFile, HttpURLConnection downloadConnection) throws IOException {
         InputStream inputStream = downloadConnection.getInputStream();
         CallBackByteChannel callBackByteChannel = new CallBackByteChannel(Channels.newChannel(inputStream), downloadableSize, this);
-        FileOutputStream fileOutputStream = new FileOutputStream(outputFile, true);
-        FileChannel channel = fileOutputStream.getChannel();
-        channel.transferFrom(callBackByteChannel, outputFile.length(), Long.MAX_VALUE);
+        try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile, true)) {
+            FileChannel channel = fileOutputStream.getChannel();
+            channel.transferFrom(callBackByteChannel, outputFile.length(), Long.MAX_VALUE);
+        }
     }
 
     private long getDownloadableSize(URL url) {

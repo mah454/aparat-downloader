@@ -1,23 +1,24 @@
 package ir.moke.aparat;
 
+import com.google.gson.Gson;
 import ir.moke.aparat.download.Downloader;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import ir.moke.aparat.model.Link;
+import ir.moke.aparat.model.Video;
 
 import java.io.File;
 import java.net.URL;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MainClass {
 
-    private static final String APARAT_URL = "https://www.aparat.com";
     private static final Map<String, String> LINKS = new LinkedHashMap<>();
     private static final Map<QUALITY, URL> QUALITIES = new LinkedHashMap<>();
     private static final String CURRENT_WORKING_DIR = System.getProperty("user.dir");
     private static String SELECTED_QUALITY = "BEST";
+
+    private static final Gson gson = new Gson();
 
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
@@ -35,66 +36,41 @@ public class MainClass {
             SELECTED_QUALITY = args[1];
         }
 
-        System.out.println("Download playlist url : " + APARAT_URL + PLAY_LIST_PATH);
-        extractPlaylistLinks(APARAT_URL + PLAY_LIST_PATH);
+        List<String> stringList = AparatHttpClient.extractPlaylist(PLAY_LIST_PATH);
 
-        int i = 1;
-        for (Map.Entry<String, String> linkMap : LINKS.entrySet()) {
-            String title = linkMap.getKey();
-            String href = linkMap.getValue();
-            String videPage = APARAT_URL + href;
-            extractVideoQualities(videPage);
+        for (int i = 0; i < stringList.size(); i++) {
+            String hash = stringList.get(i);
+            Video video = AparatHttpClient.extractVideoInformation(hash);
 
+            List<Link> links = video.links();
             if (SELECTED_QUALITY.equalsIgnoreCase("BEST")) {
-                url = QUALITIES.get(QUALITIES.keySet().toArray()[QUALITIES.size() - 1]);
+                url = links.get(links.size() - 1).url();
             } else {
-                url = QUALITIES.get(QUALITY.getQuality(SELECTED_QUALITY));
+                url = links.stream()
+                        .filter(item -> item.profile().equalsIgnoreCase(SELECTED_QUALITY))
+                        .map(Link::url)
+                        .findFirst()
+                        .orElse(null);
             }
 
-            String id = String.format("%02d", i);
-            String finalFileName = id + "_" + title + ".mp4";
-            File targetFile = new File(CURRENT_WORKING_DIR + "/" + finalFileName);
-            System.out.println(finalFileName);
-            Downloader.instance.download(url, targetFile);
-            System.out.println("\n");
+            if (url == null) {
+                System.out.println("Skip : " + video.title());
+                System.out.println("Video quality does not exists");
+            } else {
 
-            QUALITIES.clear();
-            i++;
-        }
-        System.out.println("--------------------------------");
-        System.out.println(i + " File Downloaded");
-        System.out.println("Download Playlist Completed");
-    }
+                String id = String.format("%02d", i);
+                String finalFileName = id + "_" + video.title() + ".mp4";
+                File targetFile = new File(CURRENT_WORKING_DIR + "/" + finalFileName);
+                System.out.println(finalFileName);
+                Downloader.instance.download(url, targetFile);
+                System.out.println("\n");
 
+                QUALITIES.clear();
 
-    public static void extractVideoQualities(String url) {
-        try {
-            Document doc = Jsoup.connect(url).get();
-            Elements videoDownloadableLinks = doc.select("a[href*=aparat-video]");
-            for (Element downloadableLink : videoDownloadableLinks) {
-                String href = downloadableLink.attr("href");
-                String title = downloadableLink.text();
-                String quality = title.replaceAll("[^A-Za-z0-9]", "");
-                QUALITIES.put(QUALITY.getQuality(quality.replaceAll("p", "")), new URL(href));
+                System.out.println("--------------------------------");
+                System.out.println(i + " File Downloaded");
+                System.out.println("Download Playlist Completed");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void extractPlaylistLinks(String url) {
-        try {
-            Document doc = Jsoup.connect(url).get();
-            Elements elements = doc.select("a[href*=?playlist]");
-            for (Element element : elements) {
-                if (element.hasAttr("title")) {
-                    String href = element.attr("href");
-                    String title = element.attr("title");
-                    LINKS.put(title, href);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 }
